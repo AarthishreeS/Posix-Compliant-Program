@@ -1,0 +1,157 @@
+#include<pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+int n = 4;
+
+int isPrime(int n){
+    if(n==2){
+        return 1;
+    }
+    for(int i=2;i<sqrt(n)+1;i++){
+        if(n%i==0){
+            return 0;
+        }
+    }
+    return 1;
+
+}
+int px_sum(int x,int p){
+    
+    printf("\n");
+    //printf("ELEMENT PROCESSED %d",x);
+    printf("\n");
+    int ans=0;
+    int count=0;
+    if(isPrime(x)){
+        count+=1;
+        ans+=x;
+    }
+    int left=0;
+    int i=x-1;
+    while(left<p && i>1){
+        if(isPrime(i)){
+            ans+=i;
+            count+=1;
+            left+=1;
+            //printf("%d ",i);
+        }
+        i-=1;
+    }
+    int right=0;
+    i=x+1;
+    while(right<p){
+        if(isPrime(i)){
+            ans+=i;
+            count+=1;
+            right+=1;
+           // printf("%d ",i);
+        }
+        i+=1;
+    }
+    
+    return ans/count;
+    
+}
+
+
+int averagefunction(int num[]){
+    int n = 2;
+    int sum = 0;
+    for (int i = 0; i < n; i++){
+        sum = sum + num[i];
+    }
+    return sum/n;
+}
+
+void* element_call(void *x){
+    printf("element call started \n");
+    int value = (px_sum((int)x,5));
+    printf("element value\n ");
+    printf("entered element thread\n");
+    printf("%d\n",value);
+    return (void *)value;
+    }
+    
+void* row_call(void *arg)
+
+{   int *nums = (int *) arg;
+    int n = 2;
+    int arr_row[n] ;
+    
+    printf("element in row are");
+        for(int j=0;j<n;j++){
+            printf(" %d ",nums[j]);
+        }
+        printf("\n");
+    
+    for (int t = 0; t < n ; t ++){
+        printf("row call started %d\n",t);
+        void *y;
+        pthread_t tid;
+        printf("sending element %d into row_Call\n",nums[t] );
+        pthread_create(&tid,NULL,element_call,nums[t]);
+        printf("row call created %d\n",t);
+        pthread_join(tid, &y);
+        printf(" row returned %d %d\n",t, (int)y);
+        arr_row[t] = (int)y;
+        printf("row call done %d\n",t);
+    }
+    
+    printf("element in arr_row are" );
+        for(int j=0;j<n;j++){
+            printf(" %d ",arr_row[j]);
+        }
+        printf("\n");
+    
+    int k = averagefunction(arr_row);
+    printf("entered thread\n");
+    printf("%d\n",k);
+    return (void *) k;
+    
+    
+}
+
+int main() {
+    printf("function started printing\n");
+    int array[2][2]={{17,17},{10,28}}; 
+    int n = 2;
+    int arr_final[n];
+    void *m;
+    
+    for (int i = 0; i < n ; i++){
+        pthread_t tid;
+        printf("element in row %d are" );
+        for(int j=0;j<n;j++){
+            printf(" %d ",array[i][j]);
+        }
+        printf("\n");
+        
+        int nums[n];
+        printf("nums array : ");
+        for(int count = 0 ; count<n; count ++){
+            nums[count] = array[i][count];
+            printf(" %d ", nums[count]);
+        }
+        
+        printf("\n");
+        
+        pthread_create(&tid,NULL,row_call,nums);
+        printf("thread creation done main %d\n",i);
+        pthread_join(tid, &m);
+        printf("thread call done main\n");
+        printf("%d\n", (int)m);
+        arr_final[i] = (int)m;
+    }
+    printf("element in arr_final are" );
+        for(int j=0;j<n;j++){
+            printf(" %d ",arr_final[j]);
+        }
+        
+    printf("\n");
+    int output = averagefunction(arr_final);
+    printf("\n Exit value is %d\n", output);
+
+    return 0;
+}
